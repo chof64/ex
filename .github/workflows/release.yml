@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed for versioning
+          fetch-depth: 0 # Needed for versioning
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -23,11 +23,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Get PR labels
+      - name: Authenticate GitHub CLI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Get PR labels using GitHub CLI
         id: labels
-        run: echo "LABEL=$(curl -s -H 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
-          https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
-          | jq -r '.labels[].name' | grep -E 'major|minor|patch' || echo 'patch')" >> $GITHUB_ENV
+        run: |
+          LABEL=$(gh api --jq '.labels[].name' /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | grep -E 'major|minor|patch' || echo '')
+
+          if [[ -z "$LABEL" ]]; then
+            echo "❌ No version bump label (major, minor, patch) found!"
+            exit 1  # Fail the job to prevent merging
+          fi
+
+          echo "LABEL=$LABEL" >> $GITHUB_ENV
+          echo "✅ Found version label: $LABEL"
 
       - name: Run release-it
         env:
