@@ -1,0 +1,9 @@
+{
+  "name": "@chof64/ex",
+  "version": "0.0.1",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {
+    "release-it": "^18.1.2"
+  }
+}
