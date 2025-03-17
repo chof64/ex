@@ -42,4 +42,4 @@ jobs:
       - name: Run release-it
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx release-it --ci --increment $LABEL
+        run: npx release-it --ci --no-npm --increment $LABEL
