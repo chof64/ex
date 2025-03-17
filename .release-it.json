@@ -13,7 +13,5 @@
   "hooks": {
     "before:bump": "echo 'Skipping version bump in files'"
   },
-  "npm": {
-    "publish": false
-  }
+  "npm": false
 }
