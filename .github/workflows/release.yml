@@ -1,6 +1,4 @@
 name: Release
-run_name: Release ${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
-description: Automatically release a new version when a PR is merged based on the PR label.
 
 on:
   pull_request:
