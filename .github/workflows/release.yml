@@ -1,9 +1,13 @@
-name: Release on Merge
+name: Release
+run_name: Release ${{ github.event.pull_request.number }} - ${{ github.event.pull_request.title }}
+description: Automatically release a new version when a PR is merged based on the PR label.
 
 on:
   pull_request:
     types:
       - closed
+    branches:
+      - main
 
 jobs:
   release:
@@ -13,15 +17,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Needed for versioning
+          fetch-depth: 0
 
-      - name: Setup Node.js
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 22
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Setup git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Cache NPM packages
+        id: cache-npm
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: npm-release-it-${{ runner.os }}-release-it-18
+          restore-keys: |
+            npm-release-it-${{ runner.os }}-
+
+      - name: Installing dependencies
+        run: npm install --no-save release-it@18
+        if: steps.cache-npm.outputs.cache-hit != 'true'
 
       - name: Authenticate GitHub CLI
         run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
@@ -29,15 +48,16 @@ jobs:
       - name: Get PR labels using GitHub CLI
         id: labels
         run: |
-          LABEL=$(gh api --jq '.labels[].name' /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | grep -E 'major|minor|patch' || echo '')
+          LABEL=$(gh api --jq '.labels[].name' /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | grep -E 'major|minor|patch' || true)
 
           if [[ -z "$LABEL" ]]; then
-            echo "❌ No version bump label (major, minor, patch) found!"
-            exit 1  # Fail the job to prevent merging
+            echo "⚠️ No version bump label (major, minor, patch) found. Defaulting to patch."
+            LABEL="patch"
+          else
+            echo "✅ Found version label: $LABEL"
           fi
 
           echo "LABEL=$LABEL" >> $GITHUB_ENV
-          echo "✅ Found version label: $LABEL"
 
       - name: Run release-it
         env:
