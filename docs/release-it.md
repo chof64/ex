@@ -44,94 +44,25 @@ to your project and create a release-it configuration file.
 
 ### Step 1: Add the Workflow File
 
-```yaml
-name: Release
+Create a `.github/workflows/release-it.yml` file in your project by copying:
 
-on:
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
+https://raw.githubusercontent.com/chof64/ex/refs/heads/main/.github/workflows/release.yml
 
-jobs:
-  release:
-    if: github.event.pull_request.merged == true && github.base_ref == 'main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Setup git user
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Cache NPM packages
-        id: cache-npm
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: npm-release-it-${{ runner.os }}-release-it-18
-          restore-keys: |
-            npm-release-it-${{ runner.os }}-
-
-      - name: Installing dependencies
-        run: npm install --no-save release-it@18
-        if: steps.cache-npm.outputs.cache-hit != 'true'
-
-      - name: Authenticate GitHub CLI
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-
-      - name: Get PR labels using GitHub CLI
-        id: labels
-        run: |
-          LABEL=$(gh api --jq '.labels[].name' /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | grep -E 'major|minor|patch' || true)
-
-          if [[ -z "$LABEL" ]]; then
-            echo "⚠️ No version bump label (major, minor, patch) found. Defaulting to patch."
-            LABEL="patch"
-          else
-            echo "✅ Found version label: $LABEL"
-          fi
-
-          echo "LABEL=$LABEL" >> $GITHUB_ENV
-
-      - name: Run release-it
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx release-it --ci --no-npm --increment $LABEL
-```
+- **Note**: Make sure to update your repository settings to allow GitHub Actions read and write access to the repository. `Settings > Actions > General > Workflow permissions > Read and write permissions.`
 
 ### Step 2: Create the Release-it Configuration File
 
-```json
-{
-  "$schema": "https://unpkg.com/release-it/schema/release-it.json",
-  "git": {
-    "requireCleanWorkingDir": false,
-    "commit": false,
-    "tag": true,
-    "push": true
-  },
-  "github": {
-    "release": true,
-    "releaseName": "@your-username/your-project@${version}"
-  },
-  "hooks": {
-    "before:bump": "echo 'Skipping version bump in files'"
-  },
-  "npm": false
-}
-```
+Create a `release-it.json` file in the root of your project by copying:
 
-## Things to Improve
+https://raw.githubusercontent.com/chof64/ex/refs/heads/main/release-it.json
 
+### Step 3: Make sure to have the following labels in your PRs
+
+- `release: major`
+- `release: minor`
+- `release: patch`
+
+## Updates
+
+- [x] Add prefix to PR labels.
 - [ ] Make the workflow more flexible, bump based on conventional commits if no labels are found.
