@@ -46,7 +46,7 @@ jobs:
       - name: Get PR labels using GitHub CLI
         id: labels
         run: |
-          FULL_LABEL=$(gh api --jq '.labels[].name' /repos/$/pulls/$ | grep -E 'release: (major|minor|patch)' || true)
+          FULL_LABEL=$(gh api --jq '.labels[].name' /repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} | grep -E 'release: (major|minor|patch)' || true)
 
           if [[ -z "$FULL_LABEL" ]]; then
             echo "⚠️ No version bump label (release: major, release: minor, release: patch) found. Defaulting to patch."
