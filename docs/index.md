@@ -8,4 +8,4 @@ This is my personal experimental repository where I test various tools, librarie
 
 ## Experiments
 
-- [release-it](./docs/release-it.md) - Testing the release-it GitHub Action workflow.
+- [release-it](/release-it) - Testing the release-it GitHub Action workflow.
