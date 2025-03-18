@@ -15,3 +15,11 @@ It didn't work because I added some extra stuff to the workflow that I shouldn't
 have. I've removed that now, so it should work this time. Let's test it again to confirm.
 
 Note to self: Stop adding unnecessary changes. It's not helping.
+
+---
+
+It worked! The release-it workflow is now working as intended. I can now use it
+in other projects without having to install the package in the project itself.
+
+Let's clean up the repository and push the changes. Let's test it one more time
+to make sure everything is working as expected.
